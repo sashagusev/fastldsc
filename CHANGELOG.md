@@ -26,3 +26,4 @@ perturbation-screen-to-GWAS project (August–September 2026).
 - CLI: `annot`, `l2`, `overlap`, `h2`, `scan`, `screen`, `validate`,
   `parse-results`, `fdr`, `simulate`.
 - All hard-coded paths of the research scripts replaced by arguments.
+- License changed from MIT to GNU GPL v3 or later, matching ldsc (the LD-score chunk schedule follows ldsc's traversal).

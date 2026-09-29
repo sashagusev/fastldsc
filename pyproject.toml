@@ -8,13 +8,13 @@ version = "0.1.0b1"
 description = "Fast stratified LD score regression for scanning many annotations (arithmetic mirror of ldsc --h2, one-pass multi-annotation LD scores, bordered-solve screening)"
 readme = "README.md"
 requires-python = ">=3.9"
-license = {text = "MIT"}
+license = {text = "GPL-3.0-or-later"}
 authors = [{name = "Alexander Gusev"}]
 keywords = ["ldsc", "heritability", "GWAS", "LD score regression", "S-LDSC"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

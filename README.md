@@ -340,8 +340,8 @@ and the empirical threshold is the one to use.
 
 `ldsc` (Bulik-Sullivan, Loh, Finucane et al., *Nat Genet* 2015; Finucane,
 Bulik-Sullivan, Gusev et al., *Nat Genet* 2015) is GPL-3.0.  `fastldsc` is an
-**independent re-implementation** released under the MIT license; it
-contains no ldsc source code.  The algorithms it mirrors are those described
+**independent re-implementation**, released under the same license as ldsc
+(GNU GPL v3 or later; see `LICENSE`); it contains no ldsc source code.  The algorithms it mirrors are those described
 in the papers and documented in ldsc's own code, which was read to establish
 the exact arithmetic (weights, chi-square cap, `old_weights`, jackknife,
 overlap output).  The LD-score chunk schedule in `fastldsc.l2` necessarily
