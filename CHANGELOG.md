@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- `H2Result.tau_star` now takes `M_ref`, the number of reference SNPs
+  (e.g. the `M_5_50` of baselineLD's all-ones `base` column).  It used
+  `M_annot.sum()`, which with overlapping or continuous annotations counts
+  SNPs many times over, so tau* came out about 18x too large on
+  baselineLD v2.2 designs.
+- `io.read_sumstats` drops rows whose SNP id repeats an earlier row, keeping
+  the first, as ldsc's `_read_sumstats` does.  A sumstats file with a
+  duplicated rsID (e.g. PASS BMI Yengo 2018) previously crashed `TraitData`
+  with "cannot reindex on an axis with duplicate labels".
+- `io.read_sumstats` splits on any whitespace, as ldsc does.  It split on
+  tabs only, so space-delimited files (the `UKB_460K.*` traits of the
+  Price-lab sumstats bundle) failed with "Usecols do not match columns".
+
 ## 0.1.0b1 (2026-09-29) — initial beta
 
 First packaged release, assembled from research code used for a

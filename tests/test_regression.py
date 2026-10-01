@@ -1,6 +1,9 @@
 """The WLS / block-jackknife regression."""
 
+import os
+
 import numpy as np
+import pandas as pd
 import pytest
 
 from conftest import design
@@ -58,6 +61,52 @@ def test_hand_checkable_exact_linear_model():
     # non-overlap enrichment (cat / M) / (tot / M_tot)
     M_tot = M.sum()
     assert res.enrichment[0] == pytest.approx(tau1 / (res.tot / M_tot), rel=1e-9)
+
+
+def test_tau_star_uses_reference_snp_count():
+    """tau* scales by the number of reference SNPs, not by the sum of M over
+    annotations (which overcounts SNPs when annotations overlap)."""
+    rng = np.random.default_rng(0)
+    m = 4000
+    l1 = rng.gamma(4, 3, m)
+    l2 = rng.gamma(2, 2, m)
+    N = np.full(m, 20000.0)
+    chisq = 1 + N * (3e-6 * l1 - 5e-7 * l2)
+    td = FakeTrait(chisq, N, w_ld=np.fmax(l1, 1))
+    M = np.array([1e5, 3e4])          # an all-SNP base column and a 30% subset of it
+    res = fit_h2(td, [l1, l2], M, n_blocks=20)
+    sd = np.array([0.0, np.sqrt(0.3 * 0.7)])
+    ts = res.tau_star(sd, M_ref=1e5)
+    assert ts[0] == 0.0
+    assert ts[1] == pytest.approx(res.coef[1] * sd[1] * 1e5 / res.tot, rel=1e-12)
+    assert ts[1] != pytest.approx(res.coef[1] * sd[1] * M.sum() / res.tot, rel=1e-3)
+
+
+def test_duplicate_snp_ids_keep_first_row(synth, ref, trait, tmp_path):
+    """A repeated SNP id is dropped after its first row, as in ldsc's
+    _read_sumstats, instead of breaking the merge with the reference."""
+    ss = pd.read_csv(os.path.join(synth["sumstats_dir"], "trait0.sumstats.gz"), sep="\t")
+    first = ss[ss["SNP"].isin(ref.snp[trait.rows])].iloc[[0]]
+    plain, dup = str(tmp_path / "plain.sumstats.gz"), str(tmp_path / "dup.sumstats.gz")
+    ss.to_csv(plain, sep="\t", index=False, compression="gzip")
+    pd.concat([ss, first.assign(Z=first["Z"] + 3.0)]).to_csv(dup, sep="\t", index=False,
+                                                          compression="gzip")
+    td, td0 = TraitData(ref, dup), TraitData(ref, plain)
+    assert td.n == td0.n == trait.n
+    assert np.array_equal(td.rows, td0.rows)
+    assert np.array_equal(td.chisq, td0.chisq)
+
+
+def test_space_delimited_sumstats(synth, trait, ref, tmp_path):
+    """Space-delimited sumstats (e.g. UKB_460K files) read like tab-delimited
+    ones, as ldsc reads both."""
+    ss = pd.read_csv(os.path.join(synth["sumstats_dir"], "trait0.sumstats.gz"), sep="\t")
+    tab, space = str(tmp_path / "tab.sumstats.gz"), str(tmp_path / "space.sumstats.gz")
+    ss.to_csv(tab, sep="\t", index=False, compression="gzip")
+    ss.to_csv(space, sep=" ", index=False, compression="gzip")
+    td_tab, td_space = TraitData(ref, tab), TraitData(ref, space)
+    assert td_space.n == td_tab.n == trait.n
+    assert np.array_equal(td_space.chisq, td_tab.chisq)
 
 
 def test_two_point_hand_solution():
