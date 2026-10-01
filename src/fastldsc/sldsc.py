@@ -305,15 +305,20 @@ class H2Result:
             return (self.intercept - 1) / (self.mean_chisq - 1)
         return np.nan
 
-    def tau_star(self, sd_annot: np.ndarray) -> np.ndarray:
-        """Standardised effect ``tau * sd(annot) * M_tot / h2``.
+    def tau_star(self, sd_annot: np.ndarray, M_ref: float) -> np.ndarray:
+        """Standardised effect ``tau * sd(annot) * M_ref / h2`` (Gazal et al. 2017).
 
+        ``M_ref`` is the number of reference SNPs that h2 is defined over:
+        with the default ``.l2.M_5_50`` counts, the number of common SNPs,
+        i.e. the ``M_5_50`` of an all-ones ``base`` column (5,961,159 for
+        1000G Phase 3 EUR).  It is not ``M_annot.sum()``: with overlapping
+        or continuous annotations (any baselineLD design) that sum counts
+        SNPs many times over (about 18x for baselineLD v2.2).
         ``sd_annot`` is the per-SNP standard deviation of each annotation
-        over the ``M_tot`` reference SNPs (``sqrt(p (1 - p))`` for a binary
+        over the same ``M_ref`` SNPs (``sqrt(p (1 - p))`` for a binary
         annotation covering a proportion ``p``).
         """
-        M_tot = float(self.M_annot.sum())
-        return self.coef * np.asarray(sd_annot) * M_tot / self.tot
+        return self.coef * np.asarray(sd_annot) * float(M_ref) / self.tot
 
 
 def fit_h2(td: TraitData, cols: Sequence[np.ndarray], M_annot,

@@ -206,10 +206,16 @@ def read_overlap_matrix(prefixes: Sequence[str], frq_prefix: Optional[str],
 # ---------------------------------------------------------------- sumstats
 
 def read_sumstats(path: str) -> pd.DataFrame:
-    """Read a munged ``.sumstats[.gz]`` file: SNP, Z, N with NAs dropped."""
-    ss = pd.read_csv(path, sep="\t", usecols=["SNP", "Z", "N"],
+    """Read a munged ``.sumstats[.gz]`` file: SNP, Z, N with NAs dropped.
+
+    Whitespace-delimited, as ldsc reads it (tabs or spaces; e.g. the
+    UKB_460K files of the Price-lab sumstats bundle use spaces).  As in ldsc
+    (``sumstats._read_sumstats``), rows whose SNP id repeats an earlier row
+    are then dropped, keeping the first occurrence.
+    """
+    ss = pd.read_csv(path, sep=r"\s+", usecols=["SNP", "Z", "N"],
                      dtype={"SNP": str, "Z": float, "N": float})
-    return ss.dropna(how="any")
+    return ss.dropna(how="any").drop_duplicates(subset="SNP")
 
 
 def write_sumstats(path: str, snp, Z, N, A1=None, A2=None) -> None:
